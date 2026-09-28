@@ -71,3 +71,12 @@ class PatientPageResponse(BaseModel):
     page: int
     limit: int
     data: list[PatientResponse]
+class UserRegister(BaseModel):
+    email: EmailStr
+    password: str
+    role: str = "admin"
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str

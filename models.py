@@ -25,3 +25,10 @@ class Patient(Base):
     doctor_id = Column(Integer, ForeignKey("doctors.id"), nullable=True)
 
     doctor = relationship("Doctor", back_populates="patients")
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(100), unique=True, nullable=False)
+    password = Column(String(255), nullable=False)
+    role = Column(String(20), default="admin")

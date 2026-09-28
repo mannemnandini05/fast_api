@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
+from auth import get_current_user
 from database import get_db
 from models import Doctor
 import services
@@ -14,7 +14,8 @@ router = APIRouter(prefix="/doctors", tags=["Doctors"])
 @router.post("/", response_model=DoctorResponse, status_code=201)
 def create_doctor(
     doctor: DoctorCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     new_doctor = services.create_doctor(
         db,
@@ -101,15 +102,16 @@ def get_doctor_patients(
 @router.put("/{doctor_id}", response_model=DoctorResponse)
 def update_doctor(
     doctor_id: int,
-    doctor_data: DoctorUpdate,
-    db: Session = Depends(get_db)
+    doctor: DoctorUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     doctor, error = services.update_doctor(
         db,
         doctor_id,
-        doctor_data.name,
-        doctor_data.specialization,
-        doctor_data.email
+        doctor.name,
+        doctor.specialization,
+        doctor.email
     )
 
     if error == "Doctor not found":
@@ -128,15 +130,16 @@ def update_doctor(
 @router.patch("/{doctor_id}", response_model=DoctorResponse)
 def patch_doctor(
     doctor_id: int,
-    doctor_data: DoctorPatch,
-    db: Session = Depends(get_db)
+    doctor: DoctorPatch,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     doctor, error = services.patch_doctor(
         db,
         doctor_id,
-        doctor_data.name,
-        doctor_data.specialization,
-        doctor_data.email
+        doctor.name,
+        doctor.specialization,
+        doctor.email
     )
 
     if error == "Doctor not found":
@@ -157,7 +160,8 @@ def patch_doctor(
 @router.delete("/{doctor_id}")
 def delete_doctor(
     doctor_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     doctor = services.delete_doctor(
         db,

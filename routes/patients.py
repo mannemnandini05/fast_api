@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import services
+from auth import get_current_user
 
 
 from database import get_db
@@ -11,7 +12,8 @@ router = APIRouter(prefix="/patients", tags=["Patients"])
 @router.post("/", response_model=PatientResponse, status_code=201)
 def create_patient(
     patient: PatientCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     new_patient, error = services.create_patient(
         db,
@@ -81,16 +83,17 @@ def get_patient(
 @router.put("/{patient_id}", response_model=PatientResponse)
 def update_patient(
     patient_id: int,
-    patient_data: PatientUpdate,
-    db: Session = Depends(get_db)
+    patient: PatientUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     patient, error = services.update_patient(
         db,
         patient_id,
-        patient_data.name,
-        patient_data.age,
-        patient_data.phone,
-        patient_data.doctor_id
+        patient.name,
+        patient.age,
+        patient.phone,
+        patient.doctor_id
     )
 
     if error == "Patient not found":
@@ -116,16 +119,17 @@ def update_patient(
 @router.patch("/{patient_id}", response_model=PatientResponse)
 def patch_patient(
     patient_id: int,
-    patient_data: PatientPatch,
-    db: Session = Depends(get_db)
+    patient: PatientPatch,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     patient, error = services.patch_patient(
         db,
         patient_id,
-        patient_data.name,
-        patient_data.age,
-        patient_data.phone,
-        patient_data.doctor_id
+        patient.name,
+        patient.age,
+        patient.phone,
+        patient.doctor_id
     )
 
     if error == "Patient not found":
@@ -151,7 +155,8 @@ def patch_patient(
 @router.delete("/{patient_id}")
 def delete_patient(
     patient_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
     patient = services.delete_patient(
         db,

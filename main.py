@@ -3,6 +3,7 @@ from database import Base, engine
 import models
 from routes.doctors import router as doctor_router
 from routes.patients import router as patient_router
+from routes.auth import router as auth_router
 app = FastAPI(
     title="Doctor Patient Management API"
 )
@@ -17,7 +18,10 @@ app.include_router(
     patient_router,
     prefix="/api/v1"
 )
-
+app.include_router(
+    auth_router,
+    prefix="/api/v1"
+)
 
 
 @app.get("/")
