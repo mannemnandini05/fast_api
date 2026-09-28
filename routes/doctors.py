@@ -177,4 +177,30 @@ def delete_doctor(
     return {
         "message": "Doctor deactivated successfully"
     }
+@router.post("/{doctor_id}/patients/{patient_id}", response_model=PatientResponse)
+def assign_patient(
+    doctor_id: int,
+    patient_id: int,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    patient, error = services.assign_patient_to_doctor(
+        db,
+        doctor_id,
+        patient_id
+    )
+
+    if error == "Doctor not found":
+        raise HTTPException(
+            status_code=404,
+            detail=error
+        )
+
+    if error == "Patient not found":
+        raise HTTPException(
+            status_code=404,
+            detail=error
+        )
+
+    return patient
 

@@ -283,3 +283,22 @@ def delete_patient(db: Session, patient_id: int):
     db.commit()
 
     return patient
+def assign_patient_to_doctor(
+    db: Session,
+    doctor_id: int,
+    patient_id: int
+):
+    doctor = get_doctor(db, doctor_id)
+    if not doctor:
+        return None, "Doctor not found"
+
+    patient = get_patient(db, patient_id)
+    if not patient:
+        return None, "Patient not found"
+
+    patient.doctor_id = doctor_id
+
+    db.commit()
+    db.refresh(patient)
+
+    return patient, None
