@@ -1,11 +1,26 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from datetime import datetime
+from typing import Literal, Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+
 
 
 class DoctorCreate(BaseModel):
     name: str
     specialization: str
     email: EmailStr
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "name": "Dr. Ravi Kumar",
+                "specialization": "Cardiology",
+                "email": "ravi.kumar@example.com"
+            }
+        }
+    )
+
 
 class DoctorUpdate(BaseModel):
     name: str
@@ -26,27 +41,47 @@ class DoctorResponse(BaseModel):
     email: EmailStr
     is_active: bool
 
-    class Config:
-        from_attributes = True
+    created_at: datetime
+    updated_at: datetime
+    created_by: Optional[int] = None
+    updated_by: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 
 class PatientCreate(BaseModel):
     name: str
     age: int = Field(gt=0)
-    phone: str = Field(pattern=r"^\d{10}$")
+    phone: str = Field(pattern=r"^\d{10,15}$")
     doctor_id: Optional[int] = None
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "name": "John Doe",
+                "age": 30,
+                "phone": "9876543210",
+                "doctor_id": 1
+            }
+        }
+    )
+
 
 class PatientUpdate(BaseModel):
     name: str
     age: int = Field(gt=0)
-    phone: str = Field(pattern=r"^\d{10}$")
+    phone: str = Field(pattern=r"^\d{10,15}$")
     doctor_id: Optional[int] = None
 
 
 class PatientPatch(BaseModel):
     name: Optional[str] = None
     age: Optional[int] = Field(default=None, gt=0)
-    phone: Optional[str] = Field(default=None, pattern=r"^\d{10}$")
+    phone: Optional[str] = Field(
+        default=None,
+        pattern=r"^\d{10,15}$"
+    )
     doctor_id: Optional[int] = None
 
 
@@ -55,10 +90,72 @@ class PatientResponse(BaseModel):
     name: str
     age: int
     phone: str
-    doctor_id: Optional[int]
+    doctor_id: Optional[int] = None
 
-    class Config:
-        from_attributes = True
+    created_at: datetime
+    updated_at: datetime
+    created_by: Optional[int] = None
+    updated_by: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AppointmentCreate(BaseModel):
+    doctor_id: int
+    patient_id: int
+    appointment_date: datetime
+    status: Literal["scheduled", "completed", "cancelled"] = "scheduled"
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "doctor_id": 1,
+                "patient_id": 1,
+                "appointment_date": "2026-10-15T10:30:00",
+                "status": "scheduled"
+            }
+        }
+    )
+
+class AppointmentUpdate(BaseModel):
+    doctor_id: int
+    patient_id: int
+    appointment_date: datetime
+    status: Literal["scheduled", "completed", "cancelled"]
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "doctor_id": 1,
+                "patient_id": 1,
+                "appointment_date": "2026-10-15T10:30:00",
+                "status": "completed"
+            }
+        }
+    )
+
+
+class AppointmentResponse(BaseModel):
+    id: int
+    doctor_id: int
+    patient_id: int
+    appointment_date: datetime
+    status: Literal[
+        "scheduled",
+        "completed",
+        "cancelled"
+    ]
+
+    created_at: datetime
+    updated_at: datetime
+    created_by: Optional[int] = None
+    updated_by: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+
+
 class DoctorPageResponse(BaseModel):
     total: int
     page: int
@@ -71,12 +168,48 @@ class PatientPageResponse(BaseModel):
     page: int
     limit: int
     data: list[PatientResponse]
+
+
+
+
 class UserRegister(BaseModel):
     email: EmailStr
     password: str
-    role: str = "admin"
+    role: Literal["admin", "doctor"] = "doctor"
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "email": "admin@example.com",
+                "password": "Admin@123",
+                "role": "admin"
+            }
+        }
+    )
 
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "email": "admin@example.com",
+                "password": "Admin@123"
+            }
+        }
+    )
+
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+
+class ErrorResponse(BaseModel):
+    success: bool = False
+    error: str
+    message: str
