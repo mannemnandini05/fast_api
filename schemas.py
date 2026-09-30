@@ -213,3 +213,53 @@ class ErrorResponse(BaseModel):
     success: bool = False
     error: str
     message: str
+class BillingCreate(BaseModel):
+    patient_id: int
+    doctor_id: int
+    appointment_id: Optional[int] = None
+    consultation_fee: int = Field(ge=0)
+    additional_charges: int = Field(ge=0, default=0)
+    payment_status: Literal["pending", "paid", "cancelled"] = "pending"
+    payment_mode: Literal["cash", "card", "upi"]
+
+
+class BillingUpdate(BaseModel):
+    patient_id: int
+    doctor_id: int
+    appointment_id: Optional[int] = None
+    consultation_fee: int = Field(ge=0)
+    additional_charges: int = Field(ge=0)
+    payment_status: Literal["pending", "paid", "cancelled"]
+    payment_mode: Literal["cash", "card", "upi"]
+
+
+class BillingPatch(BaseModel):
+    patient_id: Optional[int] = None
+    doctor_id: Optional[int] = None
+    appointment_id: Optional[int] = None
+    consultation_fee: Optional[int] = Field(default=None, ge=0)
+    additional_charges: Optional[int] = Field(default=None, ge=0)
+    payment_status: Optional[Literal["pending", "paid", "cancelled"]] = None
+    payment_mode: Optional[Literal["cash", "card", "upi"]] = None
+
+
+class BillingResponse(BaseModel):
+    id: int
+    patient_id: int
+    doctor_id: int
+    appointment_id: Optional[int] = None
+    consultation_fee: int
+    additional_charges: int
+    total_amount: int
+    payment_status: Literal["pending", "paid", "cancelled"]
+    payment_mode: Literal["cash", "card", "upi"]
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+class BillingPageResponse(BaseModel):
+    total: int
+    page: int
+    limit: int
+    data: list[BillingResponse]

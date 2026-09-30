@@ -39,6 +39,7 @@ class Doctor(Base):
 
     patients = relationship("Patient", back_populates="doctor")
     appointments = relationship("Appointment", back_populates="doctor")
+    billings = relationship("Billing", back_populates="doctor")
 
     creator = relationship(
         "User",
@@ -81,6 +82,7 @@ class Patient(Base):
 
     doctor = relationship("Doctor", back_populates="patients")
     appointments = relationship("Appointment", back_populates="patient")
+    billings = relationship("Billing", back_populates="patient")
 
     creator = relationship(
         "User",
@@ -189,7 +191,7 @@ class Appointment(Base):
 
     doctor = relationship("Doctor", back_populates="appointments")
     patient = relationship("Patient", back_populates="appointments")
-
+    billing = relationship("Billing", back_populates="appointment", uselist=False)    
     creator = relationship(
         "User",
         foreign_keys=[created_by],
@@ -216,5 +218,92 @@ class Appointment(Base):
             "ix_appointments_doctor_date",
             "doctor_id",
             "appointment_date",
+        ),
+    )
+class Billing(Base):
+    __tablename__ = "billings"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    patient_id = Column(
+        Integer,
+        ForeignKey("patients.id"),
+        nullable=False,
+        index=True
+    )
+
+    doctor_id = Column(
+        Integer,
+        ForeignKey("doctors.id"),
+        nullable=False,
+        index=True
+    )
+
+    appointment_id = Column(
+        Integer,
+        ForeignKey("appointments.id"),
+        nullable=True,
+        unique=True,
+        index=True
+    )
+
+    consultation_fee = Column(Integer, nullable=False)
+    additional_charges = Column(Integer, nullable=False, default=0)
+    total_amount = Column(Integer, nullable=False)
+
+    payment_status = Column(
+        String(20),
+        nullable=False,
+        default="pending"
+    )
+
+    payment_mode = Column(
+        String(20),
+        nullable=False
+    )
+
+    is_active = Column(
+        Boolean,
+        nullable=False,
+        default=True
+    )
+
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False
+    )
+
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False
+    )
+
+    patient = relationship("Patient", back_populates="billings")
+    doctor = relationship("Doctor", back_populates="billings")
+    appointment = relationship("Appointment", back_populates="billing")
+
+    __table_args__ = (
+        CheckConstraint(
+            "consultation_fee >= 0",
+            name="check_consultation_fee_positive"
+        ),
+        CheckConstraint(
+            "additional_charges >= 0",
+            name="check_additional_charges_positive"
+        ),
+        CheckConstraint(
+            "total_amount >= 0",
+            name="check_total_amount_positive"
+        ),
+        CheckConstraint(
+            "payment_status IN ('pending', 'paid', 'cancelled')",
+            name="check_payment_status"
+        ),
+        CheckConstraint(
+            "payment_mode IN ('cash', 'card', 'upi')",
+            name="check_payment_mode"
         ),
     )
